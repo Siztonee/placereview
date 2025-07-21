@@ -1,0 +1,51 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15
+    container_name: reviews_db
+    env_file: .env
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    networks:
+      - reviews-network
+
+  backend:
+    build:
+      context: ./backend
+    container_name: reviews_backend
+    env_file: .env
+    volumes:
+      - ./backend:/app 
+    ports:
+      - "8080:8080"
+    depends_on:
+      - postgres
+    networks:
+      - reviews-network
+    command: >
+      sh -c "pip install -r requirements.txt &&
+             python manage.py migrate &&
+             python manage.py runserver 0.0.0.0:8080"
+
+  frontend:
+    build:
+      context: ./frontend
+    container_name: reviews_frontend
+    volumes:
+      - ./frontend:/app
+    ports:
+      - "3000:3000"
+    networks:
+      - reviews-network
+    depends_on:
+      - backend
+
+volumes:
+  postgres_data:
+
+networks:
+  reviews-network:
+    driver: bridge
