@@ -17,7 +17,7 @@ export default function Navbar() {
         
         <div className="hidden md:flex space-x-8">
           <a href="#" className="hover:text-primary transition">Главная</a>
-          <a href="#" className="hover:text-primary transition">Места</a>
+          <a href="/places" className="hover:text-primary transition">Места</a>
           <a href="#" className="hover:text-primary transition">О проекте</a>
           <a href="#" className="hover:text-primary transition">Контакты</a>
         </div>
