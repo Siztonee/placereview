@@ -31,12 +31,12 @@ export default function AuthForm({ type }: AuthFormProps) {
     e.preventDefault();
     setIsLoading(true);
     setErrors({});
-
+  
     try {
       const url = type === 'login' 
-        ? `${process.env.NEXT_PUBLIC_DJANGO_BROWSER_API_URL}/api/auth/login/`
-        : `${process.env.NEXT_PUBLIC_DJANGO_BROWSER_API_URL}/api/auth/register/`;
-
+        ? `${process.env.NEXT_PUBLIC_DJANGO_BROWSER_API_URL}/api/users/auth/login/`
+        : `${process.env.NEXT_PUBLIC_DJANGO_BROWSER_API_URL}/api/users/auth/register/`;
+  
       const response = await fetch(url, {
         method: 'POST',
         headers: {
@@ -44,20 +44,31 @@ export default function AuthForm({ type }: AuthFormProps) {
         },
         body: JSON.stringify(formData)
       });
-
+  
+      // Обрабатываем успешную регистрацию без попытки парсинга JSON
+      if (response.ok && type === 'register') {
+        setFormData({
+          username: '',
+          password: '',
+          first_name: '',
+          last_name: '',
+          password2: ''
+        });
+        router.push('/signin');
+        setIsLoading(false);
+        return;
+      }
+  
+      // Для логина и ошибок регистрации обрабатываем JSON
       const data = await response.json();
-
+  
       if (response.ok) {
-        // Сохраняем токен в localStorage (или куках)
-        if (data.access) {
-          localStorage.setItem('accessToken', data.access);
-          localStorage.setItem('refreshToken', data.refresh);
-        }
-        
-        // Перенаправляем на главную страницу
+        // Обработка успешного входа
+        localStorage.setItem('accessToken', data.access);
+        localStorage.setItem('refreshToken', data.refresh);
         router.push('/');
       } else {
-        // Обработка ошибок валидации
+        // Обработка ошибок
         if (data.detail) {
           setErrors({ non_field_errors: [data.detail] });
         } else {
